@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DompetKeluarga - Laporan Keuangan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
+            --income: #00b894;
+            --expense: #d63031;
+            --text: #2d3436;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text);
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header & Saldo Utama */
+        header { text-align: center; margin-bottom: 30px; }
+        h2 { font-weight: 600; font-size: 1.2rem; color: #636e72; margin-bottom: 5px; }
+        
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(78, 84, 200, 0.3);
+            margin-bottom: 25px;
+        }
+        
+        .balance-card span { font-size: 0.9rem; opacity: 0.9; }
+        .balance-card h1 { font-size: 2.5rem; margin-top: 5px; font-weight: 600; letter-spacing: 1px; }
+
+        /* Summary Income/Expense */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .summary-box {
+            flex: 1;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #eee;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.02);
+        }
+
+        .summary-box h4 { font-size: 0.8rem; text-transform: uppercase; color: #b2bec3; }
+        .summary-box p { font-size: 1.1rem; font-weight: 600; margin-top: 5px; }
+        .text-plus { color: var(--income); }
+        .text-minus { color: var(--expense); }
+
+        /* Form Input */
+        .form-control { margin-bottom: 15px; }
+        .form-control label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 500; }
+        
+        input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus { border-color: var(--secondary); background: #fafaff; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .btn:active { transform: scale(0.98); }
+        .btn-inc { background-color: var(--income); box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3); }
+        .btn-exp { background-color: var(--expense); box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3); }
+
+        /* List Transaksi */
+        .history-header { font-size: 1.1rem; font-weight: 600; margin: 30px 0 15px; border-left: 4px solid var(--primary); padding-left: 10px; }
+        
+        .list { list-style: none; max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        
+        /* Custom Scrollbar */
+        .list::-webkit-scrollbar { width: 6px; }
+        .list::-webkit-scrollbar-thumb { background-color: #dfe6e9; border-radius: 10px; }
+
+        .list li {
+            background: #fff;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px solid #f1f2f6;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .list li:hover { transform: translateX(5px); border-color: #dcdde1; }
+        .list li.plus { border-left: 5px solid var(--income); }
+        .list li.minus { border-left: 5px solid var(--expense); }
+        
+        .delete-btn {
+            background: transparent;
+            color: #b2bec3;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 10px;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+        .delete-btn:hover { color: var(--expense); }
+
+        /* File Actions */
+        .file-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #dfe6e9;
+            text-align: center;
+        }
+        .link-action {
+            display: inline-block;
+            margin: 0 10px;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .link-action:hover { text-decoration: underline; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h2>Laporan Keuangan</h2>
+            <div class="balance-card">
+                <span>Saldo Total</span>
+                <h1 id="balance">Rp 0</h1>
+            </div>
+        </header>
+
+        <div class="summary-row">
+            <div class="summary-box">
+                <h4>Pemasukan</h4>
+                <p id="money-plus" class="text-plus">+Rp 0</p>
+            </div>
+            <div class="summary-box">
+                <h4>Pengeluaran</h4>
+                <p id="money-minus" class="text-minus">-Rp 0</p>
+            </div>
+        </div>
+
+        <div class="form-control">
+            <label>Keterangan Transaksi</label>
+            <input type="text" id="text" placeholder="Contoh: Belanja Bulanan">
+        </div>
+
+        <div class="form-control">
+            <label>Jumlah Uang (Rupiah)</label>
+            <input type="tel" id="amount" placeholder="0" onkeyup="formatInputUang(this)">
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-inc" onclick="addTransaction(true)">+ Masuk</button>
+            <button class="btn btn-exp" onclick="addTransaction(false)">- Keluar</button>
+        </div>
+
+        <h3 class="history-header">Riwayat Terakhir</h3>
+        <ul id="list" class="list">
+            </ul>
+
+        <div class="file-section">
+            <span class="link-action" onclick="downloadJSON()">💾 Simpan Data (Backup)</span>
+            <span class="link-action" onclick="document.getElementById('fileInput').click()">📂 Buka Data Lama</span>
+            <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadJSON(this)">
+        </div>
+    </div>
+
+    <script>
+        const balance = document.getElementById('balance');
+        const money_plus = document.getElementById('money-plus');
+        const money_minus = document.getElementById('money-minus');
+        const list = document.getElementById('list');
+        const text = document.getElementById('text');
+        const amountInput = document.getElementById('amount');
+
+        // Mengambil data dari local storage saat aplikasi dibuka
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        // --- FITUR FORMAT UANG SAAT MENGETIK ---
+        function formatInputUang(input) {
+            // 1. Ambil value asli
+            let value = input.value;
+            
+            // 2. Hapus karakter selain angka
+            let numberString = value.replace(/[^,\d]/g, '').toString();
+            
+            // 3. Format menjadi ribuan (Indonesia)
+            let split = numberString.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+            
+            // 4. Kembalikan ke input field
+            input.value = rupiah;
+        }
+
+        // --- FUNGSI UTAMA ---
+
+        function addTransaction(isIncome) {
+            // Kita perlu membersihkan titik sebelum menyimpan ke database
+            const cleanAmount = amountInput.value.replace(/\./g, ''); 
+
+            if (text.value.trim() === '' || cleanAmount === '') {
+                alert('Mohon isi keterangan dan jumlah uang yang valid.');
+                return;
+            }
+
+            // Konversi ke angka (integer)
+            let numberAmount = parseInt(cleanAmount);
+            
+            // Jika pengeluaran, ubah jadi negatif
+            if (!isIncome) {
+                numberAmount = -Math.abs(numberAmount);
+            } else {
+                numberAmount = Math.abs(numberAmount);
+            }
+
+            const transaction = {
+                id: generateID(),
+                text: text.value,
+                amount: numberAmount
+            };
+
+            transactions.push(transaction);
+            updateUI();
+            
+            // Reset Form
+            text.value = '';
+            amountInput.value = '';
+            text.focus(); // Kembalikan kursor ke kolom teks
+        }
+
+        function generateID() {
+            return Math.floor(Math.random() * 100000000);
+        }
+
+        function removeTransaction(id) {
+            if(confirm("Yakin ingin menghapus data ini?")) {
+                transactions = transactions.filter(t => t.id !== id);
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            list.innerHTML = '';
+
+            const amounts = transactions.map(t => t.amount);
+            const total = amounts.reduce((acc, item) => (acc += item), 0);
+            const income = amounts.filter(item => item > 0).reduce((acc, item) => (acc += item), 0);
+            const expense = (amounts.filter(item => item < 0).reduce((acc, item) => (acc += item), 0) * -1);
+
+            balance.innerText = formatRupiah(total);
+            money_plus.innerText = `+${formatRupiah(income)}`;
+            money_minus.innerText = `-${formatRupiah(expense)}`;
+
+            transactions.forEach(transaction => {
+                const sign = transaction.amount < 0 ? '-' : '+';
+                const item = document.createElement('li');
+                item.classList.add(transaction.amount < 0 ? 'minus' : 'plus');
+                
+                item.innerHTML = `
+                    <div>
+                        <strong>${transaction.text}</strong>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <span style="font-weight:bold;">${sign}${formatRupiah(Math.abs(transaction.amount))}</span>
+                        <button class="delete-btn" onclick="removeTransaction(${transaction.id})">×</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
+
+        // --- FITUR SAVE/LOAD FILE ---
+
+        function downloadJSON() {
+            if(transactions.length === 0) {
+                alert("Belum ada data untuk disimpan.");
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transactions));
+            const node = document.createElement('a');
+            const date = new Date().toISOString().slice(0,10);
+            node.setAttribute("href", dataStr);
+            node.setAttribute("download", `DompetKeluarga_${date}.json`);
+            document.body.appendChild(node);
+            node.click();
+            node.remove();
+        }
+
+        function loadJSON(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (Array.isArray(json)) {
+                        if(confirm("Data lama di browser akan ditimpa dengan data file ini. Lanjutkan?")) {
+                            transactions = json;
+                            updateUI();
+                        }
+                    }
+                } catch (error) {
+                    alert('File rusak atau bukan format JSON yang benar.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
